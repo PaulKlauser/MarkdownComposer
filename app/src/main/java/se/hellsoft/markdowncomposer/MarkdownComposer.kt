@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -99,7 +100,7 @@ fun MDHeading(heading: Heading, modifier: Modifier = Modifier) {
     val padding = if (heading.parent is Document) 8.dp else 0.dp
     Box(modifier = modifier.padding(bottom = padding)) {
         val text = buildAnnotatedString {
-            appendMarkdownChildren(heading, MaterialTheme.colors)
+            appendMarkdownChildren(heading, MaterialTheme.colors, typography = MaterialTheme.typography)
         }
         MarkdownText(text, style)
     }
@@ -115,7 +116,7 @@ fun MDParagraph(paragraph: Paragraph, modifier: Modifier = Modifier) {
         Box(modifier = modifier.padding(bottom = padding)) {
             val styledText = buildAnnotatedString {
                 pushStyle(MaterialTheme.typography.body1.toSpanStyle())
-                appendMarkdownChildren(paragraph, MaterialTheme.colors)
+                appendMarkdownChildren(paragraph, MaterialTheme.colors, typography = MaterialTheme.typography)
                 pop()
             }
             MarkdownText(styledText, MaterialTheme.typography.body1)
@@ -145,7 +146,7 @@ fun MDBulletList(bulletList: BulletList, modifier: Modifier = Modifier) {
         val text = buildAnnotatedString {
             pushStyle(MaterialTheme.typography.body1.toSpanStyle())
             append("$marker ")
-            appendMarkdownChildren(it, MaterialTheme.colors)
+            appendMarkdownChildren(it, MaterialTheme.colors, typography = MaterialTheme.typography)
             pop()
         }
         MarkdownText(text, MaterialTheme.typography.body1, modifier)
@@ -160,7 +161,7 @@ fun MDOrderedList(orderedList: OrderedList, modifier: Modifier = Modifier) {
         val text = buildAnnotatedString {
             pushStyle(MaterialTheme.typography.body1.toSpanStyle())
             append("${number++}$delimiter ")
-            appendMarkdownChildren(it, MaterialTheme.colors)
+            appendMarkdownChildren(it, MaterialTheme.colors, typography = MaterialTheme.typography)
             pop()
         }
         MarkdownText(text, MaterialTheme.typography.body1, modifier)
@@ -210,7 +211,7 @@ fun MDBlockQuote(blockQuote: BlockQuote, modifier: Modifier = Modifier) {
                 MaterialTheme.typography.body1.toSpanStyle()
                     .plus(SpanStyle(fontStyle = FontStyle.Italic))
             )
-            appendMarkdownChildren(blockQuote, MaterialTheme.colors)
+            appendMarkdownChildren(blockQuote, MaterialTheme.colors, typography = MaterialTheme.typography)
             pop()
         }
         Text(text, modifier)
@@ -259,23 +260,47 @@ fun MDBlockChildren(parent: Node) {
 }
 
 fun AnnotatedString.Builder.appendMarkdownChildren(
-    parent: Node, colors: Colors, withinList: Boolean = false
+    parent: Node, colors: Colors, withinList: Boolean = false, typography: Typography
 ) {
     var child = parent.firstChild
     while (child != null) {
         when (child) {
+            is Heading -> {
+                when(child.level) {
+                    1 -> pushStyle(typography.h1.toSpanStyle())
+                    2 -> pushStyle(typography.h2.toSpanStyle())
+                    3 -> pushStyle(typography.h3.toSpanStyle())
+                    4 -> pushStyle(typography.h4.toSpanStyle())
+                    5 -> pushStyle(typography.h5.toSpanStyle())
+                    6 -> pushStyle(typography.h6.toSpanStyle())
+                    else -> pushStyle(typography.body1.toSpanStyle())
+                }
+                appendMarkdownChildren(child, colors = colors, typography = typography)
+                append("\n")
+                pop()
+            }
             is Paragraph -> {
                 if (!withinList) {
                     append("\n")
                 }
-                appendMarkdownChildren(child, colors)
+                appendMarkdownChildren(child, colors, typography = typography)
             }
 
             is BulletList -> {
                 var listItem = child.firstChild
                 while (listItem != null) {
                     append("\n${child.bulletMarker} ")
-                    appendMarkdownChildren(listItem, colors, withinList = true)
+                    appendMarkdownChildren(listItem, colors, withinList = true, typography = typography)
+                    listItem = listItem.next
+                }
+            }
+            is OrderedList -> {
+                var number = child.startNumber
+                val delimiter = child.delimiter
+                var listItem = child.firstChild
+                while (listItem != null) {
+                    append("\n${number++}$delimiter ")
+                    appendMarkdownChildren(listItem, colors, withinList = true, typography = typography)
                     listItem = listItem.next
                 }
             }
@@ -284,13 +309,13 @@ fun AnnotatedString.Builder.appendMarkdownChildren(
             is Image -> appendInlineContent(TAG_IMAGE_URL, child.destination)
             is Emphasis -> {
                 pushStyle(SpanStyle(fontStyle = FontStyle.Italic))
-                appendMarkdownChildren(child, colors)
+                appendMarkdownChildren(child, colors, typography = typography)
                 pop()
             }
 
             is StrongEmphasis -> {
                 pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
-                appendMarkdownChildren(child, colors)
+                appendMarkdownChildren(child, colors, typography = typography)
                 pop()
             }
 
@@ -308,7 +333,7 @@ fun AnnotatedString.Builder.appendMarkdownChildren(
                 val underline = SpanStyle(colors.primary, textDecoration = TextDecoration.Underline)
                 pushStyle(underline)
                 pushStringAnnotation(TAG_URL, child.destination)
-                appendMarkdownChildren(child, colors)
+                appendMarkdownChildren(child, colors, typography = typography)
                 pop()
                 pop()
             }

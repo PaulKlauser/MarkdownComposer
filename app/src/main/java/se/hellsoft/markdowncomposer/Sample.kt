@@ -54,13 +54,20 @@ function codeBlock() {
 
 @Language("Markdown")
 const val MIXED_MD_NO_IMAGE = """
-### Markdown Header
+# One Header
+## Two Header
+### Three Header
 This *is* text __with__ inline styles for *__bold and italic__* and `inline code` also works.
 
 + Bullet
 + __Lists__
 + Are
 + *Cool*
+
+1. **First**
+1. *Second*
+1. Third
+
 
 This *is* text __with__ inline styles for *__bold and italic__*. Those can be nested.
 """

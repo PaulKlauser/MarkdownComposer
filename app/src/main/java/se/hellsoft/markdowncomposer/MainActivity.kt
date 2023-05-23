@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                             if (render) {
                                 val annotatedString = AnnotatedString.Builder().run {
-                                    appendMarkdownChildren(root, MaterialTheme.colors)
+                                    appendMarkdownChildren(root, MaterialTheme.colors, typography = MaterialTheme.typography)
                                     toAnnotatedString()
                                 }
                                 Text(annotatedString)
