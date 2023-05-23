@@ -1,5 +1,8 @@
-# PoC Markdown rendered for Jetpack Compose
+# Parse Markdown to AnnotatedString
 
-This project is a small proof-of-concept implementation for rendering Markdown text using Jetpack Compose.
+This is based on Erik Hellman's work here: [MarkdownComposer](https://github.com/ErikHellman/MarkdownComposer),
+but tweaked to decouple the Markdown parsing from rendering, leveraging AnnotatedStrings, and
+delegating the rendering to Compose's Text().
 
-It depends on the CommonMarks library (Java) and the Accompanist library by Chris Banes (for displaying images).
+Pretty rough cut so far, with a lot of Erik's code still present, serves only as a PoC built on top
+of another PoC 😅
