@@ -51,3 +51,16 @@ function codeBlock() {
 > A blockquote is useful for quotes!
 
 """
+
+@Language("Markdown")
+const val MIXED_MD_NO_IMAGE = """
+### Markdown Header
+This *is* text __with__ inline styles for *__bold and italic__* and `inline code` also works.
+
++ Bullet
++ __Lists__
++ Are
++ *Cool*
+
+This *is* text __with__ inline styles for *__bold and italic__*. Those can be nested.
+"""

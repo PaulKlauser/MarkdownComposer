@@ -259,12 +259,27 @@ fun MDBlockChildren(parent: Node) {
 }
 
 fun AnnotatedString.Builder.appendMarkdownChildren(
-    parent: Node, colors: Colors
+    parent: Node, colors: Colors, withinList: Boolean = false
 ) {
     var child = parent.firstChild
     while (child != null) {
         when (child) {
-            is Paragraph -> appendMarkdownChildren(child, colors)
+            is Paragraph -> {
+                if (!withinList) {
+                    append("\n")
+                }
+                appendMarkdownChildren(child, colors)
+            }
+
+            is BulletList -> {
+                var listItem = child.firstChild
+                while (listItem != null) {
+                    append("\n${child.bulletMarker} ")
+                    appendMarkdownChildren(listItem, colors, withinList = true)
+                    listItem = listItem.next
+                }
+            }
+
             is Text -> append(child.literal)
             is Image -> appendInlineContent(TAG_IMAGE_URL, child.destination)
             is Emphasis -> {
@@ -272,19 +287,23 @@ fun AnnotatedString.Builder.appendMarkdownChildren(
                 appendMarkdownChildren(child, colors)
                 pop()
             }
+
             is StrongEmphasis -> {
                 pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
                 appendMarkdownChildren(child, colors)
                 pop()
             }
+
             is Code -> {
                 pushStyle(TextStyle(fontFamily = FontFamily.Monospace).toSpanStyle())
                 append(child.literal)
                 pop()
             }
+
             is HardLineBreak -> {
                 append("\n")
             }
+
             is Link -> {
                 val underline = SpanStyle(colors.primary, textDecoration = TextDecoration.Underline)
                 pushStyle(underline)
